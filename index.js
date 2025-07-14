@@ -231,6 +231,9 @@ app.get("/", (req, res) => {
                             <button onclick="quickCommand(`bold column 'name'`)" class="bg-gray-100 text-gray-700 px-3 py-1 rounded-md text-sm hover:bg-gray-200 transition-colors">
                                 Bold Name Column
                             </button>
+                            <button onclick="quickCommand(`bold 'John Doe' in column 'name'`)" class="bg-gray-100 text-gray-700 px-3 py-1 rounded-md text-sm hover:bg-gray-200 transition-colors">
+                                Bold John Doe
+                            </button>
                         </div>
                     </div>
                 </div>

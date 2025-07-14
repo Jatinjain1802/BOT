@@ -206,7 +206,9 @@ async function createExcelWithBoldHeaders(data, filename) {
   });
 
   // Save the file
-  await workbook.xlsx.writeFile(filename);
+  const tempFilename = `${filename}.tmp`;
+  await workbook.xlsx.writeFile(tempFilename);
+  fs.renameSync(tempFilename, filename);
   return filename;
 }
 
@@ -217,26 +219,89 @@ async function formatExcelFile(command, filename) {
   const worksheet = workbook.getWorksheet(1);
 
   if (command.toLowerCase().includes("bold headers")) {
-    const headerRow = worksheet.getRow(1);
-    headerRow.eachCell((cell) => {
-      cell.font = { bold: true };
+    worksheet.eachRow((row) => {
+      row.eachCell((cell) => {
+        if (cell.font && cell.font.bold) {
+          // already bold
+        } else {
+          cell.font = { bold: false };
+        }
+      });
     });
+    worksheet.getRow(1).font = { bold: true };
   } else if (command.toLowerCase().startsWith("bold column")) {
     const columnName = command.split("'")[1];
-    const headerRow = worksheet.getRow(1);
     let colIndex = -1;
-    headerRow.eachCell((cell, colNumber) => {
+    worksheet.getColumn(1).eachCell((cell, rowNumber) => {
       if (cell.value === columnName) {
-        colIndex = colNumber;
+        colIndex = 2; // data is in the second column
+      }
+    });
+    if (colIndex !== -1) {
+      worksheet.getColumn(colIndex).font = { bold: true };
+    }
+  } else if (command.toLowerCase().startsWith("bold '")) {
+    const parts = command.split("'");
+    const dataToBold = parts[1];
+    const columnName = parts[3];
+
+    let rowIndex = -1;
+    let colIndex = -1;
+
+    worksheet.eachRow((row, rowNumber) => {
+      if (row.getCell(1).value === columnName && row.getCell(2).value === dataToBold) {
+        rowIndex = rowNumber;
+        colIndex = 2;
       }
     });
 
-    if (colIndex !== -1) {
-      worksheet.getColumn(colIndex).eachCell((cell) => {
-        cell.font = { bold: true };
-      });
+    if (rowIndex !== -1 && colIndex !== -1) {
+      worksheet.getCell(rowIndex, colIndex).font = { bold: true };
     }
   }
+
+  await workbook.xlsx.writeFile(filename);
+  return filename;
+}
+
+async function createExcelFromStructuredCsv(data, filename) {
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet("Processed Data");
+
+  let row = 1;
+  data.forEach((record) => {
+    const recordName = Object.keys(record)[0];
+    const recordData = record[recordName];
+    worksheet.getCell(row, 1).value = recordName;
+    worksheet.getCell(row, 1).font = { bold: true };
+    row++;
+
+    Object.keys(recordData).forEach((key) => {
+      const value = recordData[key];
+      if (Array.isArray(value)) {
+        worksheet.getCell(row, 2).value = key;
+        worksheet.getCell(row, 2).font = { bold: true };
+        row++;
+        value.forEach((item) => {
+          if (typeof item === "object") {
+            Object.keys(item).forEach((subKey) => {
+              worksheet.getCell(row, 3).value = subKey;
+              worksheet.getCell(row, 4).value = item[subKey];
+              row++;
+            });
+          } else {
+            worksheet.getCell(row, 3).value = item;
+            row++;
+          }
+        });
+      } else {
+        worksheet.getCell(row, 2).value = key;
+        worksheet.getCell(row, 3).value = value;
+        row++;
+      }
+    });
+    row++;
+  });
 
   await workbook.xlsx.writeFile(filename);
   return filename;
@@ -247,4 +312,5 @@ module.exports = {
   createTraditionalCsv,
   createExcelWithBoldHeaders, // 👈 Export Excel creator
   formatExcelFile,
+  createExcelFromStructuredCsv,
 };

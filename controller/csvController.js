@@ -88,6 +88,7 @@ const {
   createStructuredCsv,
   createTraditionalCsv,
   createExcelWithBoldHeaders,
+  createExcelFromStructuredCsv,
 } = require("../services/csvWriter");
 const { getCsvData } = require("./pdfController");
 
@@ -153,7 +154,7 @@ const downloadCsv = async (req, res) => {
     } else if (format === "excel") {
         filePath = `./exports/download_${timestamp}.xlsx`;
         downloadName = "processed_data.xlsx";
-        await createExcelWithBoldHeaders(csvData, filePath);
+        await createExcelFromStructuredCsv(csvData, filePath);
     } else {
         return res.status(400).json({ success: false, error: "Invalid format requested." });
     }
