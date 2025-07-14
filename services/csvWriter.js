@@ -210,8 +210,41 @@ async function createExcelWithBoldHeaders(data, filename) {
   return filename;
 }
 
+// 🆕 Excel Formatter
+async function formatExcelFile(command, filename) {
+  const workbook = new ExcelJS.Workbook();
+  await workbook.xlsx.readFile(filename);
+  const worksheet = workbook.getWorksheet(1);
+
+  if (command.toLowerCase().includes("bold headers")) {
+    const headerRow = worksheet.getRow(1);
+    headerRow.eachCell((cell) => {
+      cell.font = { bold: true };
+    });
+  } else if (command.toLowerCase().startsWith("bold column")) {
+    const columnName = command.split("'")[1];
+    const headerRow = worksheet.getRow(1);
+    let colIndex = -1;
+    headerRow.eachCell((cell, colNumber) => {
+      if (cell.value === columnName) {
+        colIndex = colNumber;
+      }
+    });
+
+    if (colIndex !== -1) {
+      worksheet.getColumn(colIndex).eachCell((cell) => {
+        cell.font = { bold: true };
+      });
+    }
+  }
+
+  await workbook.xlsx.writeFile(filename);
+  return filename;
+}
+
 module.exports = {
   createStructuredCsv,
   createTraditionalCsv,
   createExcelWithBoldHeaders, // 👈 Export Excel creator
+  formatExcelFile,
 };

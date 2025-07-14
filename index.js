@@ -225,6 +225,12 @@ app.get("/", (req, res) => {
                             <button onclick="quickCommand('Filter data')" class="bg-gray-100 text-gray-700 px-3 py-1 rounded-md text-sm hover:bg-gray-200 transition-colors">
                                 Filter Data
                             </button>
+                            <button onclick="quickCommand('Format Excel with bold headers')" class="bg-gray-100 text-gray-700 px-3 py-1 rounded-md text-sm hover:bg-gray-200 transition-colors">
+                                Format Excel
+                            </button>
+                            <button onclick="quickCommand(`bold column 'name'`)" class="bg-gray-100 text-gray-700 px-3 py-1 rounded-md text-sm hover:bg-gray-200 transition-colors">
+                                Bold Name Column
+                            </button>
                         </div>
                     </div>
                 </div>

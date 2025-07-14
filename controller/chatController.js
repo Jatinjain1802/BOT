@@ -11,12 +11,22 @@ const handleChat = async (req, res) => {
     }
 
     const csvData = getCsvData();
-    const csvKeywords = ["csv", "json", "data", "row", "column", "filter", "sort", "add", "remove", "update"];
+    const csvKeywords = ["csv", "json", "data", "row", "column", "filter", "sort", "add", "remove", "update", "format"];
     const isCsvCommand = csvKeywords.some((keyword) => command.toLowerCase().includes(keyword));
 
     if (isCsvCommand) {
       if (csvData.length === 0) {
         return res.status(400).json({ success: false, error: "No PDF data available. Please upload a PDF first." });
+      }
+
+      if (command.toLowerCase().startsWith("format")) {
+        const updatedExcelPath = "./exports/updated_data.xlsx";
+        if (!require("fs").existsSync(updatedExcelPath)) {
+          return res.status(400).json({ success: false, error: "No Excel file to format. Please create one first." });
+        }
+        const { formatExcelFile } = require("../services/csvWriter");
+        await formatExcelFile(command, updatedExcelPath);
+        return res.json({ success: true, message: "Excel file formatted successfully." });
       }
 
       const modifiedData = await processCommand(command, csvData);
@@ -28,7 +38,7 @@ const handleChat = async (req, res) => {
       setCsvData(modifiedData);
 
       // Save updated data to both CSV and Excel for download
-      const { createStructuredCsv, createExcelWithBoldHeaders } = require("../services/csvWriter");
+      const { createStructuredCsv, createExcelWithBoldHeaders, formatExcelFile } = require("../services/csvWriter");
       const updatedCsvPath = "./exports/updated_data.csv";
       const updatedExcelPath = "./exports/updated_data.xlsx";
       try {
