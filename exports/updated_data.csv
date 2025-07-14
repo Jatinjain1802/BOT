@@ -1,0 +1,53 @@
+Record 1
+==================================================
+samagraFamilyId: **42883434**
+HEADOFFAMILY
+------------------------------
+name: Shekhar Jain
+address: [object Object]
+aadhaarAddress: [object Object]
+
+FAMILYMEMBERS
+------------------------------
+familyMember 1:
+  samagraId: 1192689160
+  name: Shekhar Jain
+  age: 49
+  gender: पु.
+  registrationDate: 01/09/2014
+  registeredBy: Sourabh
+
+familyMember 2:
+  samagraId: 2192689210
+  name: Ranu Jain
+  age: 43
+  gender: म.
+  registrationDate: 01/09/2014
+  registeredBy: Sourabh
+
+familyMember 3:
+  samagraId: 3192689246
+  name: Jatin Jain
+  age: 21
+  gender: पु.
+  registrationDate: 01/09/2014
+  registeredBy: Sourabh
+
+familyMember 4:
+  samagraId: 4192689285
+  name: Jiya Jain
+  age: 17
+  gender: म.
+  registrationDate: 01/09/2014
+  registeredBy: Sourabh
+
+REGISTRATIONDETAILS
+------------------------------
+registrationDate: 01/09/2014 6:11:00 PM
+registeredBy: Sourabh
+
+CARDDETAILS
+------------------------------
+cardUpdateDate: 12/07/2025 1:45:57 PM
+ipAddress: 10.115.246.14
+
