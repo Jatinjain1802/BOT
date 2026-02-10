@@ -1,6 +1,14 @@
 const { groq } = require("../config/groqClient");
 const { processCommand } = require("../services/csvProcessor");
 const { getCsvData, setCsvData } = require("./pdfController");
+const path = require("path");
+const fs = require("fs");
+const { createStructuredCsv, createExcelWithBoldHeaders, formatExcelFile } = require("../services/csvWriter");
+
+const isVercel = process.env.VERCEL === '1';
+const exportsPath = isVercel ? '/tmp/exports' : './exports';
+const updatedExcelPath = path.join(exportsPath, "updated_data.xlsx");
+const updatedCsvPath = path.join(exportsPath, "updated_data.csv");
 
 const handleChat = async (req, res) => {
   try {
@@ -20,11 +28,9 @@ const handleChat = async (req, res) => {
       }
 
       if (command.toLowerCase().startsWith("format")) {
-        const updatedExcelPath = "./exports/updated_data.xlsx";
-        if (!require("fs").existsSync(updatedExcelPath)) {
+        if (!fs.existsSync(updatedExcelPath)) {
           return res.status(400).json({ success: false, error: "No Excel file to format. Please create one first." });
         }
-        const { formatExcelFile } = require("../services/csvWriter");
         await formatExcelFile(command, updatedExcelPath);
         return res.json({ success: true, message: "Excel file formatted successfully." });
       }
@@ -38,9 +44,10 @@ const handleChat = async (req, res) => {
       setCsvData(modifiedData);
 
       // Save updated data to both CSV and Excel for download
-      const { createStructuredCsv, createExcelWithBoldHeaders, formatExcelFile } = require("../services/csvWriter");
-      const updatedCsvPath = "./exports/updated_data.csv";
-      const updatedExcelPath = "./exports/updated_data.xlsx";
+
+      // Ensure directory exists
+      if (!fs.existsSync(exportsPath)) fs.mkdirSync(exportsPath, { recursive: true });
+
       try {
         createStructuredCsv(modifiedData, updatedCsvPath);
         await createExcelWithBoldHeaders(modifiedData, updatedExcelPath);

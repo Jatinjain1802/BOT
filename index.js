@@ -9,7 +9,7 @@ const PORT = 3000;
 
 // Middlewares
 app.use(express.json());
-app.use(express.static("public"));
+app.use(express.static(path.join(__dirname, "public")));
 app.use(cors());
 
 
@@ -849,11 +849,21 @@ app.post("/clear-session", (req, res) => {
     res.json({ success: true, message: "Session cleared" });
 });
 
+// Determine base directory for temp files
+const isVercel = process.env.VERCEL === '1';
+const uploadDir = isVercel ? '/tmp/uploads' : './uploads';
+const exportDir = isVercel ? '/tmp/exports' : './exports';
+
 // Ensure directories exist
-["./uploads", "./exports"].forEach((dir) => {
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir);
+[uploadDir, exportDir].forEach((dir) => {
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 });
 
-app.listen(PORT, () => {
-    console.log(`🚀 AI Agent server running on http://localhost:${PORT}`);
-});
+// Start server if running directly
+if (require.main === module) {
+    app.listen(PORT, () => {
+        console.log(`🚀 AI Agent server running on http://localhost:${PORT}`);
+    });
+}
+
+module.exports = app;
