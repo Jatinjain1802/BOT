@@ -1,4 +1,5 @@
 const express = require("express");
+require("dotenv").config();
 const fs = require("fs");
 const path = require("path");
 const cors = require("cors");
@@ -15,12 +16,13 @@ app.use(cors());
 
 // Serve HTML interface
 app.get("/", (req, res) => {
-  res.send(`<!DOCTYPE html>
+    res.send(`<!DOCTYPE html>
 <html>
 <head>
     <title>AI PDF to CSV Agent</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.29.0/feather.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         .loader {
             border: 3px solid #f3f4f6;
@@ -82,6 +84,30 @@ app.get("/", (req, res) => {
 
     <!-- Main Content -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Visualization Section (Moved to top) -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <div class="bg-purple-100 p-2 rounded-lg mr-4">
+                        <i data-feather="bar-chart-2" class="h-6 w-6 text-purple-600"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-lg font-medium text-gray-900">Data Visualization</h2>
+                        <p class="text-sm text-gray-500">Generate intelligent charts and insights from your PDF data</p>
+                    </div>
+                </div>
+                <button onclick="analyzeData()" class="bg-purple-600 text-white px-6 py-2 rounded-md hover:bg-purple-700 transition-colors font-medium flex items-center shadow-sm">
+                    <i data-feather="activity" class="h-4 w-4 mr-2"></i>
+                    Generate Charts & Analysis
+                </button>
+            </div>
+            
+            <div id="visualizationResult" class="mt-6 hidden border-t border-gray-100 pt-6">
+                <div id="visSummary" class="text-sm text-gray-700 font-medium bg-purple-50 p-4 rounded-md mb-6"></div>
+                <div id="chartsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
+            </div>
+        </div>
+
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <!-- Left Panel - Upload & Settings -->
             <div class="lg:col-span-1">
@@ -155,6 +181,8 @@ app.get("/", (req, res) => {
                     
                     <div id="downloadResult" class="mt-4"></div>
                 </div>
+                
+
             </div>
                 
             <!-- Right Panel - Chat Interface -->
@@ -228,7 +256,7 @@ app.get("/", (req, res) => {
                             <button onclick="quickCommand('Format Excel with bold headers')" class="bg-gray-100 text-gray-700 px-3 py-1 rounded-md text-sm hover:bg-gray-200 transition-colors">
                                 Format Excel
                             </button>
-                            <button onclick="quickCommand(`bold column 'name'`)" class="bg-gray-100 text-gray-700 px-3 py-1 rounded-md text-sm hover:bg-gray-200 transition-colors">
+                            <button onclick="quickCommand(\`bold column 'name'\`)" class="bg-gray-100 text-gray-700 px-3 py-1 rounded-md text-sm hover:bg-gray-200 transition-colors">
                                 Bold Name Column
                             </button>
                         </div>
@@ -313,6 +341,26 @@ app.get("/", (req, res) => {
                 showError(document.getElementById('uploadResult'), 'Please select a valid PDF file');
                 return;
             }
+
+            // Update UI to show uploaded file name
+            const dropZoneIcon = dropZone.querySelector('i');
+            const dropZoneText = dropZone.querySelector('p');
+            const dropZoneSub = dropZone.querySelectorAll('p')[1];
+            
+            if (dropZoneIcon) {
+                dropZoneIcon.setAttribute('data-feather', 'file-text');
+                dropZoneIcon.classList.remove('text-gray-400');
+                dropZoneIcon.classList.add('text-blue-600');
+            }
+            if (dropZoneText) {
+                dropZoneText.textContent = file.name;
+                dropZoneText.classList.remove('text-gray-600');
+                dropZoneText.classList.add('font-semibold', 'text-blue-900');
+            }
+            if (dropZoneSub) {
+                dropZoneSub.textContent = \`Size: \${(file.size / 1024 / 1024).toFixed(2)} MB\`;
+            }
+            feather.replace();
             
             const formData = new FormData();
             formData.append('pdf', file);
@@ -578,25 +626,145 @@ app.get("/", (req, res) => {
             feather.replace();
         }
         
-        // Auto-resize textarea
         document.getElementById('chatInput').addEventListener('input', function() {
             this.style.height = 'auto';
             this.style.height = Math.min(this.scrollHeight, 120) + 'px';
         });
+
+        // Color palette generator
+        const defaultColors = [
+            '#4F46E5', '#EF4444', '#10B981', '#F59E0B', '#6366F1', 
+            '#EC4899', '#8B5CF6', '#14B8A6', '#F97316', '#06B6D4'
+        ];
+
+        async function analyzeData() {
+            const resultDiv = document.getElementById('visualizationResult');
+            const summaryDiv = document.getElementById('visSummary');
+            const chartsContainer = document.getElementById('chartsContainer');
+            
+            resultDiv.classList.remove('hidden');
+            summaryDiv.innerHTML = \`<div class="flex items-center justify-center p-4">
+                    <div class="loader w-6 h-6 mr-3 text-purple-600"></div>
+                    <span class="text-purple-700 font-medium">Analyzing data patterns... This may take a moment.</span>
+                </div>\`;
+            chartsContainer.innerHTML = '';
+            
+            try {
+                const response = await fetch('/analyze');
+                const result = await response.json();
+                
+                if (result.success && result.data) {
+                    summaryDiv.innerHTML = result.data.summary || 'Analysis complete.';
+                    summaryDiv.className = 'text-sm text-gray-700 font-medium bg-purple-50 p-4 rounded-md border border-purple-100';
+                    
+                    const charts = result.data.charts;
+                    if (charts && charts.length > 0) {
+                        charts.forEach((chartConfig, index) => {
+                            const canvasContainer = document.createElement('div');
+                            canvasContainer.className = 'bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow';
+                            
+                            const title = document.createElement('h3');
+                            title.className = 'text-lg font-semibold text-gray-800 mb-4 text-center';
+                            title.innerText = chartConfig.title;
+                            canvasContainer.appendChild(title);
+                            
+                            const canvasWrapper = document.createElement('div');
+                            canvasWrapper.className = 'relative h-64 w-full'; // Fixed height for consistency
+                            
+                            const canvas = document.createElement('canvas');
+                            canvas.id = 'chart-' + index;
+                            canvasWrapper.appendChild(canvas);
+                            canvasContainer.appendChild(canvasWrapper);
+                            
+                            chartsContainer.appendChild(canvasContainer);
+                            
+                            // Ensure datasets have colors
+                            if(chartConfig.datasets) {
+                                chartConfig.datasets.forEach((dataset, i) => {
+                                    if(!dataset.backgroundColor || dataset.backgroundColor.length === 0) {
+                                        // Assign colors from palette if missing
+                                        if (chartConfig.type === 'pie' || chartConfig.type === 'doughnut') {
+                                            dataset.backgroundColor = defaultColors;
+                                        } else {
+                                            dataset.backgroundColor = defaultColors[i % defaultColors.length];
+                                            dataset.borderColor = defaultColors[i % defaultColors.length];
+                                            dataset.borderWidth = 1;
+                                        }
+                                    }
+                                });
+                            }
+
+                            new Chart(canvas, {
+                                type: chartConfig.type,
+                                data: {
+                                    labels: chartConfig.labels,
+                                    datasets: chartConfig.datasets
+                                },
+                                options: {
+                                    responsive: true,
+                                    maintainAspectRatio: false,
+                                    plugins: {
+                                        legend: {
+                                            position: 'bottom',
+                                            labels: {
+                                                usePointStyle: true,
+                                                padding: 20
+                                            }
+                                        },
+                                        tooltip: {
+                                            backgroundColor: 'rgba(17, 24, 39, 0.8)',
+                                            padding: 12,
+                                            cornerRadius: 8,
+                                        }
+                                    },
+                                    scales: (chartConfig.type === 'bar' || chartConfig.type === 'line') ? {
+                                        y: {
+                                            beginAtZero: true,
+                                            grid: {
+                                                display: true,
+                                                color: '#f3f4f6'
+                                            }
+                                        },
+                                        x: {
+                                            grid: {
+                                                display: false
+                                            }
+                                        }
+                                    } : {}
+                                }
+                            });
+                        });
+                    } else {
+                        summaryDiv.innerHTML = '<div class="text-yellow-700 bg-yellow-50 p-4 rounded-md">No suitable charts could be generated from this data. Try creating a manual summary first.</div>';
+                    }
+                } else {
+                    summaryDiv.innerHTML = \`<div class="text-red-700 bg-red-50 p-4 rounded-md border border-red-200">
+    <div class="font-bold mb-1">Analysis Failed</div>
+                        \${result.error || 'Unknown error occurred'}
+                    </div>\`;
+                }
+            } catch (error) {
+                summaryDiv.innerHTML = \`<div class="text-red-700 bg-red-50 p-4 rounded-md border border-red-200">
+    <div class="font-bold mb-1">Connection Error</div>
+                    Failed to analyze data: \${error.message}
+                </div>\`;
+            }
+        }
     </script>
 </body>
 </html>`);
 });
 // Routes
 app.use("/", require("./routes/pdfRoutes"));
+app.use("/", require("./routes/analysisRoutes"));
 app.use("/", require("./routes/chatRoutes"));
 app.use("/", require("./routes/csvRoutes"));
 
 // Ensure directories exist
 ["./uploads", "./exports"].forEach((dir) => {
-  if (!fs.existsSync(dir)) fs.mkdirSync(dir);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir);
 });
 
 app.listen(PORT, () => {
-  console.log(`🚀 AI Agent server running on http://localhost:${PORT}`);
+    console.log(`🚀 AI Agent server running on http://localhost:${PORT}`);
 });

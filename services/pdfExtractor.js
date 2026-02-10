@@ -1,4 +1,4 @@
-const { groq } = require("../config/groqClinet");
+const { groq } = require("../config/groqClient");
 
 async function extractStructuredData(pdfText) {
   try {
@@ -40,7 +40,7 @@ async function extractStructuredData(pdfText) {
           content: `Extract structured data from this text and return as JSON array. Keep nested structures intact for complex data:\n\n${pdfText}`,
         },
       ],
-      model: "llama3-70b-8192",
+      model: "llama-3.3-70b-versatile",
       temperature: 0.1,
     });
 

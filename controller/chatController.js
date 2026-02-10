@@ -1,4 +1,4 @@
-const { groq } = require("../config/groqClinet");
+const { groq } = require("../config/groqClient");
 const { processCommand } = require("../services/csvProcessor");
 const { getCsvData, setCsvData } = require("./pdfController");
 
@@ -49,7 +49,7 @@ const handleChat = async (req, res) => {
       }
 
       const confirmation = await groq.chat.completions.create({
-        model: "llama3-70b-8192",
+        model: "llama-3.3-70b-versatile",
         messages: [
           {
             role: "system",
@@ -77,7 +77,7 @@ const handleChat = async (req, res) => {
       }
 
       const response = await groq.chat.completions.create({
-        model: "llama3-70b-8192",
+        model: "llama-3.3-70b-versatile",
         messages: [
           { role: "system", content: context },
           { role: "user", content: command },

@@ -1,53 +1,64 @@
 Record 1
 ==================================================
-samagraFamilyId: **42883434**
-HEADOFFAMILY
+reportName: Stock Report
+generationDate: 2/10/2026 12:13:25 PM
+AGENTDETAILS
 ------------------------------
-name: Shekhar Jain
-address: [object Object]
-aadhaarAddress: [object Object]
+name: Jatin Jain
+email: jjain0740@gmail.com
 
-FAMILYMEMBERS
+REPORTSUMMARY
 ------------------------------
-familyMember 1:
-  samagraId: 1192689160
-  name: Shekhar Jain
-  age: 49
-  gender: पु.
-  registrationDate: 01/09/2014
-  registeredBy: Sourabh
+periodType: All
+netQuantity: -3
 
-familyMember 2:
-  samagraId: 2192689210
-  name: Ranu Jain
-  age: 43
-  gender: म.
-  registrationDate: 01/09/2014
-  registeredBy: Sourabh
-
-familyMember 3:
-  samagraId: 3192689246
-  name: Jatin Jain
-  age: 21
-  gender: पु.
-  registrationDate: 01/09/2014
-  registeredBy: Sourabh
-
-familyMember 4:
-  samagraId: 4192689285
-  name: Jiya Jain
-  age: 17
-  gender: म.
-  registrationDate: 01/09/2014
-  registeredBy: Sourabh
-
-REGISTRATIONDETAILS
+STOCKTRANSACTIONS
 ------------------------------
-registrationDate: 01/09/2014 6:11:00 PM
-registeredBy: Sourabh
+stockTransaction 1:
+  date: Feb 9, 2026
+  product: Mini DryTab Lime Automatic Toilet Bowl Cleaner-Freshener
+  txnId: OUTSTK_64111
+  status: APPROVED
+  quantity: -1
 
-CARDDETAILS
+stockTransaction 2:
+  date: Feb 9, 2026
+  product: Mini DryTab Lime Automatic Toilet Bowl Cleaner-Freshener
+  txnId: INSTK_35310
+  status: REJECTED
+  quantity: 1
+
+stockTransaction 3:
+  date: Feb 9, 2026
+  product: test
+  txnId: INSTK_35310
+  status: REJECTED
+  quantity: 1
+
+stockTransaction 4:
+  date: Feb 4, 2026
+  product: I may disagree with what you say, but I will defend to death your right to say it. (Evelyn Beatrice Hall)
+  txnId: OUTSTK_11109
+  status: APPROVED
+  quantity: -1
+
+stockTransaction 5:
+  date: Feb 4, 2026
+  product: Laptop 1
+  txnId: OUTSTK_11109
+  status: APPROVED
+  quantity: -1
+
+stockTransaction 6:
+  date: Feb 4, 2026
+  product: nackband
+  txnId: OUTSTK_11109
+  status: APPROVED
+  quantity: -2
+
+STOCKSUMMARY
 ------------------------------
-cardUpdateDate: 12/07/2025 1:45:57 PM
-ipAddress: 10.115.246.14
+stockIn: 2
+stockOut: -5
+netChange: -3
 

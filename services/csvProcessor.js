@@ -1,4 +1,4 @@
-const { groq } = require("../config/groqClinet");
+const { groq } = require("../config/groqClient");
 
 // Helper function to process chat commands using Groq
 async function processCommand(command, currentData) {
@@ -49,7 +49,7 @@ async function processCommand(command, currentData) {
           Please modify the data according to this command and return the updated JSON array. Maintain nested structures.`,
         },
       ],
-      model: "llama3-70b-8192",
+      model: "llama-3.3-70b-versatile",
       temperature: 0.1,
     });
 
