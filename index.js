@@ -19,10 +19,11 @@ app.get("/", (req, res) => {
     res.send(`<!DOCTYPE html>
 <html>
 <head>
-    <title>AI PDF to CSV Agent</title>
+    <title>SheetSage AI</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.29.0/feather.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         .loader {
             border: 3px solid #f3f4f6;
@@ -66,10 +67,10 @@ app.get("/", (req, res) => {
             <div class="flex justify-between items-center h-16">
                 <div class="flex items-center">
                     <div class="flex-shrink-0">
-                        <i data-feather="cpu" class="h-8 w-8 text-blue-600"></i>
+                        <img src="/logo.png" alt="SheetSage AI" class="h-16 w-auto object-contain">
                     </div>
                     <div class="ml-3">
-                        <h1 class="text-xl font-semibold text-gray-900">AI PDF to CSV Agent</h1>
+                        <h1 class="text-xl font-semibold text-gray-900">SheetSage AI</h1>
                         <p class="text-sm text-gray-500">Intelligent document processing</p>
                     </div>
                 </div>
@@ -133,6 +134,13 @@ app.get("/", (req, res) => {
                     </div>
                     
                     <div id="uploadResult" class="mt-4"></div>
+                    
+                    <div id="fileActions" class="mt-4 hidden text-center border-t border-gray-100 pt-4">
+                        <button onclick="removePdf()" class="text-red-500 hover:text-red-700 text-sm font-medium flex items-center justify-center mx-auto transition-colors px-3 py-1 rounded-md hover:bg-red-50">
+                            <i data-feather="trash-2" class="h-4 w-4 mr-2"></i>
+                            Remove PDF & Reset
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Format Selection -->
@@ -267,8 +275,10 @@ app.get("/", (req, res) => {
     </div>
 
     <script>
+
         let currentData = [];
         let isProcessing = false;
+        let hasUploadedFile = false; // Track if a file has been uploaded in this session
         
         // Initialize Feather icons
         feather.replace();
@@ -389,8 +399,10 @@ app.get("/", (req, res) => {
                     progressDiv.classList.add('hidden');
                     
                     if (result.success) {
+                        hasUploadedFile = true; // Mark as uploaded
                         showSuccess(resultDiv, 'PDF processed successfully! Ready for CSV creation.');
-                        addAssistantMessage('PDF uploaded and processed successfully! You can now create a CSV file or ask me to manipulate the data.');
+                        document.getElementById('fileActions').classList.remove('hidden'); // Show remove button
+                        addAssistantMessage('**PDF Uploaded Successfully!** 🚀\\n\\nI extract data from your file. You can now:\\n- Ask me to **filter** or **modify** the data\\n- **Generate charts** using the button above\\n- **Export** to CSV or Excel');
                     } else {
                         showError(resultDiv, result.error);
                     }
@@ -426,23 +438,84 @@ app.get("/", (req, res) => {
             const messageDiv = document.createElement('div');
             messageDiv.className = 'chat-message';
             
-            const bgColor = isError ? 'bg-red-100' : 'bg-gray-100';
+            const bgColor = isError ? 'bg-red-50 border border-red-200' : 'bg-white border border-gray-200 shadow-sm';
             const iconColor = isError ? 'text-red-600' : 'text-blue-600';
-            const textColor = isError ? 'text-red-800' : 'text-gray-800';
+            const textColor = isError ? 'text-red-800' : 'text-gray-700';
+            
+            // Parse markdown using marked.js
+            const parsedMessage = isError ? message : marked.parse(message);
             
             messageDiv.innerHTML = \`
                 <div class="flex items-start space-x-3">
-                    <div class="\${isError ? 'bg-red-100' : 'bg-blue-100'} p-2 rounded-full">
+                    <div class="\${isError ? 'bg-red-100' : 'bg-blue-50'} p-2 rounded-lg flex-shrink-0 mt-1">
                         <i data-feather="\${isError ? 'alert-circle' : 'cpu'}" class="h-4 w-4 \${iconColor}"></i>
                     </div>
-                    <div class="\${bgColor} rounded-lg p-4 max-w-md">
-                        <p class="\${textColor}">\${message}</p>
+                    <div class="\${bgColor} rounded-xl rounded-tl-none p-5 max-w-lg w-full">
+                        <div class="prose prose-sm max-w-none \${textColor}">
+                            \${parsedMessage}
+                        </div>
                     </div>
                 </div>
            \`;
             chatMessages.appendChild(messageDiv);
             feather.replace();
             chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        async function removePdf() {
+            if (!confirm("Are you sure you want to remove this PDF? This will clear all analysis and chat history.")) return;
+            
+            // UI Reset
+            const dropZone = document.getElementById('dropZone');
+            const fileInput = document.getElementById('pdfFile');
+            const resultDiv = document.getElementById('uploadResult');
+            const progressDiv = document.getElementById('uploadProgress');
+            const fileActions = document.getElementById('fileActions');
+
+            // Reset Elements
+            fileInput.value = ''; 
+            resultDiv.innerHTML = ''; 
+            progressDiv.classList.add('hidden'); 
+            fileActions.classList.add('hidden'); 
+
+            // Reset Drop Zone Visuals
+            const dropZoneIcon = dropZone.querySelector('i');
+            const dropZoneText = dropZone.querySelector('p');
+            const dropZoneSub = dropZone.querySelectorAll('p')[1];
+            
+            // Re-create original icons/text
+            if(dropZoneIcon) {
+                dropZoneIcon.setAttribute('data-feather', 'file-plus');
+                dropZoneIcon.className = 'h-12 w-12 text-gray-400 mx-auto mb-4';
+                dropZoneIcon.classList.remove('text-blue-600');
+            }
+            if(dropZoneText) {
+                dropZoneText.className = 'text-gray-600 mb-2';
+                dropZoneText.textContent = 'Drop your PDF here or click to browse';
+                 dropZoneText.classList.remove('font-semibold', 'text-blue-900');
+            }
+            if(dropZoneSub) {
+                dropZoneSub.textContent = 'Supports PDF files up to 10MB';
+            }
+            
+            feather.replace();
+
+            // Reset State
+            hasUploadedFile = false;
+            currentData = [];
+            document.getElementById('visualizationResult').classList.add('hidden'); 
+            
+            // Clear Chat
+            const chatMessages = document.getElementById('chatMessages');
+            chatMessages.innerHTML = ''; // Full clear
+            addAssistantMessage("Context cleared. Please upload a new PDF to start.");
+
+            // Server Reset
+            try {
+                await fetch('/clear-session', { method: 'POST' });
+            } catch (e) {
+                console.error("Failed to clear server session", e);
+            }
         }
         
         function addLoadingMessage() {
@@ -643,6 +716,16 @@ app.get("/", (req, res) => {
             const chartsContainer = document.getElementById('chartsContainer');
             
             resultDiv.classList.remove('hidden');
+
+            if (!hasUploadedFile) {
+                summaryDiv.innerHTML = \`<div class="text-yellow-700 bg-yellow-50 p-4 rounded-md border border-yellow-200">
+                    <div class="font-bold mb-1">No File Uploaded</div>
+                    Please upload a PDF file first to generate charts and analysis.
+                </div>\`;
+                chartsContainer.innerHTML = '';
+                return;
+            }
+
             summaryDiv.innerHTML = \`<div class="flex items-center justify-center p-4">
                     <div class="loader w-6 h-6 mr-3 text-purple-600"></div>
                     <span class="text-purple-700 font-medium">Analyzing data patterns... This may take a moment.</span>
@@ -759,6 +842,12 @@ app.use("/", require("./routes/pdfRoutes"));
 app.use("/", require("./routes/analysisRoutes"));
 app.use("/", require("./routes/chatRoutes"));
 app.use("/", require("./routes/csvRoutes"));
+
+app.post("/clear-session", (req, res) => {
+    const { setCsvData } = require("./controller/pdfController");
+    setCsvData([]); // Clear the data on the server
+    res.json({ success: true, message: "Session cleared" });
+});
 
 // Ensure directories exist
 ["./uploads", "./exports"].forEach((dir) => {

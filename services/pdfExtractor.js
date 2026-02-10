@@ -40,7 +40,7 @@ async function extractStructuredData(pdfText) {
           content: `Extract structured data from this text and return as JSON array. Keep nested structures intact for complex data:\n\n${pdfText}`,
         },
       ],
-      model: "llama-3.3-70b-versatile",
+      model: "meta-llama/llama-4-maverick-17b-128e-instruct",
       temperature: 0.1,
     });
 

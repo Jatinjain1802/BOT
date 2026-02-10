@@ -49,7 +49,7 @@ const handleChat = async (req, res) => {
       }
 
       const confirmation = await groq.chat.completions.create({
-        model: "llama-3.3-70b-versatile",
+        model: "meta-llama/llama-4-maverick-17b-128e-instruct",
         messages: [
           {
             role: "system",
@@ -77,7 +77,7 @@ const handleChat = async (req, res) => {
       }
 
       const response = await groq.chat.completions.create({
-        model: "llama-3.3-70b-versatile",
+        model: "meta-llama/llama-4-maverick-17b-128e-instruct",
         messages: [
           { role: "system", content: context },
           { role: "user", content: command },

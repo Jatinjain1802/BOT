@@ -1,0 +1,48 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FCD34D" /> <!-- Light Gold -->
+      <stop offset="100%" stop-color="#D97706" /> <!-- Dark Gold -->
+    </linearGradient>
+    <linearGradient id="blueGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1E293B" /> <!-- Slate 800 -->
+      <stop offset="100%" stop-color="#0F172A" /> <!-- Slate 900 -->
+    </linearGradient>
+    <filter id="dropShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="15"/>
+      <feOffset dx="5" dy="10" result="offsetblur"/>
+      <feComponentTransfer>
+        <feFuncA type="linear" slope="0.3"/>
+      </feComponentTransfer>
+      <feMerge> 
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/> 
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Main Container / Sheet Shape -->
+  <rect x="86" y="56" width="340" height="400" rx="40" fill="url(#blueGradient)" filter="url(#dropShadow)" />
+
+  <!-- The "Golden" Page Turn / Insight Reveal -->
+  <!-- A graceful curve representing a page peeling back or a flow of data -->
+  <path d="M 426 350 C 426 350, 250 350, 200 250 C 150 150, 86 120, 86 120 L 86 416 C 86 438, 104 456, 126 456 H 386 C 408 456, 426 438, 426 416 V 350 Z" fill="url(#goldGradient)" />
+
+  <!-- Accent Line / Data Stream -->
+  <path d="M 200 250 C 250 350, 426 350, 426 350" stroke="white" stroke-width="4" stroke-opacity="0.3" fill="none" />
+
+  <!-- The "Sage" Spark -->
+  <!-- A minimalist 4-point star representing AI intelligence, positioned at the focal point -->
+  <path d="M 160 140 L 170 160 L 190 170 L 170 180 L 160 200 L 150 180 L 130 170 L 150 160 Z" fill="#FCD34D" />
+  
+  <!-- Subtle Grid Pattern on the Blue area (representing structure) -->
+  <circle cx="160" cy="140" r="2" fill="white" fill-opacity="0.5" />
+  <circle cx="210" cy="140" r="2" fill="white" fill-opacity="0.3" />
+  <circle cx="260" cy="140" r="2" fill="white" fill-opacity="0.2" />
+  
+  <circle cx="210" cy="190" r="2" fill="white" fill-opacity="0.3" />
+  <circle cx="260" cy="190" r="2" fill="white" fill-opacity="0.2" />
+  
+  <circle cx="260" cy="240" r="2" fill="white" fill-opacity="0.2" />
+
+</svg>

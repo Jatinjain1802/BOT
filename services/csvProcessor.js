@@ -49,7 +49,7 @@ async function processCommand(command, currentData) {
           Please modify the data according to this command and return the updated JSON array. Maintain nested structures.`,
         },
       ],
-      model: "llama-3.3-70b-versatile",
+      model: "meta-llama/llama-4-maverick-17b-128e-instruct",
       temperature: 0.1,
     });
 
