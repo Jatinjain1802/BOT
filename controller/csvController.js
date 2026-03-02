@@ -7,8 +7,8 @@ const {
 } = require("../services/csvWriter");
 const { getCsvData } = require("./pdfController");
 
-const isVercel = process.env.VERCEL === '1';
-const exportsPath = isVercel ? '/tmp/exports' : './exports';
+const isVercel = !!process.env.VERCEL;
+const exportsPath = isVercel ? '/tmp/exports' : path.join(__dirname, '../exports');
 
 // Download the latest updated CSV or Excel file
 const downloadUpdated = async (req, res) => {

@@ -1,12 +1,12 @@
-const { groq } = require("../config/groqClient");
+const { groq, MODELS } = require("../config/groqClient");
 const { processCommand } = require("../services/csvProcessor");
 const { getCsvData, setCsvData } = require("./pdfController");
 const path = require("path");
 const fs = require("fs");
 const { createStructuredCsv, createExcelWithBoldHeaders, formatExcelFile } = require("../services/csvWriter");
 
-const isVercel = process.env.VERCEL === '1';
-const exportsPath = isVercel ? '/tmp/exports' : './exports';
+const isVercel = !!process.env.VERCEL;
+const exportsPath = isVercel ? '/tmp/exports' : path.join(__dirname, '../exports');
 const updatedExcelPath = path.join(exportsPath, "updated_data.xlsx");
 const updatedCsvPath = path.join(exportsPath, "updated_data.csv");
 
@@ -56,7 +56,7 @@ const handleChat = async (req, res) => {
       }
 
       const confirmation = await groq.chat.completions.create({
-        model: "meta-llama/llama-4-maverick-17b-128e-instruct",
+        model: MODELS.CHAT, // Simple confirmation can use fast model
         messages: [
           {
             role: "system",
@@ -64,11 +64,7 @@ const handleChat = async (req, res) => {
           },
           {
             role: "user",
-            content: `User command: "${command}". Here is the updated data (first 2 rows): ${JSON.stringify(
-              modifiedData.slice(0, 2),
-              null,
-              2
-            )}. Write a brief confirmation.`,
+            content: `User command: "${command}". Update successful. Write a brief confirmation.`,
           },
         ],
         temperature: 0.5,
@@ -84,7 +80,7 @@ const handleChat = async (req, res) => {
       }
 
       const response = await groq.chat.completions.create({
-        model: "meta-llama/llama-4-maverick-17b-128e-instruct",
+        model: MODELS.CHAT, // Normal chat uses the fastest model
         messages: [
           { role: "system", content: context },
           { role: "user", content: command },

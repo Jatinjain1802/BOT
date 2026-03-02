@@ -1,4 +1,4 @@
-const { groq } = require("../config/groqClient");
+const { groq, MODELS } = require("../config/groqClient");
 
 async function extractStructuredData(pdfText) {
   try {
@@ -13,54 +13,42 @@ async function extractStructuredData(pdfText) {
           2. Create consistent column headers
           3. Return data as an array of objects
           4. If data seems tabular, preserve the table structure
-          5. If it's invoice/receipt data, extract items, quantities, prices
-          6. If it's a report, extract key metrics and values
-          7. For nested data like projects, skills, education - keep them as nested objects/arrays
-          8. For resumes/CVs, structure like: {name, email, phone, skills: [], projects: [{name, description}], education: []}
           
           Example output format:
           [
-            {
-              "name": "John Doe", 
-              "email": "john@email.com",
-              "skills": ["JavaScript", "Python", "React"],
-              "projects": [
-                {"name": "Project1", "description": "Description1", "techStack": "React, Node.js"},
-                {"name": "Project2", "description": "Description2", "techStack": "Python, Django"}
-              ],
-              "education": [
-                {"degree": "Bachelor in CS", "institution": "ABC University", "year": "2020"},
-                {"degree": "Master in IT", "institution": "XYZ University", "year": "2022"}
-              ]
-            }
-          ]`,
+            { "name": "John Doe", "email": "john@email.com" }
+          ]
+          
+          Return ONLY dry JSON. No conversation, no markdown blocks.`,
         },
         {
           role: "user",
-          content: `Extract structured data from this text and return as JSON array. Keep nested structures intact for complex data:\n\n${pdfText}`,
+          content: `Extract structured data from this text and return as JSON array:\n\n${pdfText}`,
         },
       ],
-      model: "meta-llama/llama-4-maverick-17b-128e-instruct",
+      model: MODELS.EXTRACTION,
       temperature: 0.1,
     });
 
-    const result = completion.choices[0].message.content;
+    const result = completion.choices[0].message.content.trim();
 
-    // Try to parse the JSON response
+    // Cleaning logic: Check for JSON inside markdown blocks or just the raw array
     try {
-      return JSON.parse(result);
-    } catch (parseError) {
-      // If JSON parsing fails, try to extract JSON from the response
+      // Step 1: Handle Markdown blocks if present
       const jsonMatch = result.match(/\[[\s\S]*\]/);
       if (jsonMatch) {
         return JSON.parse(jsonMatch[0]);
       }
-      throw new Error("Could not parse structured data from AI response");
+      return JSON.parse(result);
+    } catch (parseError) {
+      console.error("Failed to parse AI response as JSON:", result);
+      throw new Error("Could not parse structured data from AI response. Please try again.");
     }
   } catch (error) {
     console.error("Error extracting structured data:", error);
     throw error;
   }
 }
+
 
 module.exports = { extractStructuredData };

@@ -1,64 +1,47 @@
 Record 1
 ==================================================
-reportName: Stock Report
-generationDate: 2/10/2026 12:13:25 PM
-AGENTDETAILS
-------------------------------
-name: Jatin Jain
-email: jjain0740@gmail.com
+Date: Feb 4, 2026
+Product: I may disagree with what you say, but I will defend to death your right to say it. (Evelyn Beatrice Hall)
+TXN ID: OUTSTK_11109
+Status: APPROVED
+Quantity: -1
 
-REPORTSUMMARY
-------------------------------
-periodType: All
-netQuantity: -3
+Record 2
+==================================================
+Date: Feb 4, 2026
+Product: Laptop 1
+TXN ID: OUTSTK_11109
+Status: APPROVED
+Quantity: -1
 
-STOCKTRANSACTIONS
-------------------------------
-stockTransaction 1:
-  date: Feb 9, 2026
-  product: Mini DryTab Lime Automatic Toilet Bowl Cleaner-Freshener
-  txnId: OUTSTK_64111
-  status: APPROVED
-  quantity: -1
+Record 3
+==================================================
+Date: Feb 4, 2026
+Product: nackband
+TXN ID: OUTSTK_11109
+Status: APPROVED
+Quantity: -2
 
-stockTransaction 2:
-  date: Feb 9, 2026
-  product: Mini DryTab Lime Automatic Toilet Bowl Cleaner-Freshener
-  txnId: INSTK_35310
-  status: REJECTED
-  quantity: 1
+Record 4
+==================================================
+Date: Feb 9, 2026
+Product: Mini DryTab Lime  Automatic Toilet Bowl Cleaner-Freshener
+TXN ID: INSTK_35310
+Status: REJECTED
+Quantity: +1
 
-stockTransaction 3:
-  date: Feb 9, 2026
-  product: test
-  txnId: INSTK_35310
-  status: REJECTED
-  quantity: 1
+Record 5
+==================================================
+Date: Feb 9, 2026
+Product: Mini DryTab Lime  Automatic Toilet Bowl Cleaner-Freshener
+TXN ID: OUTSTK_64111
+Status: APPROVED
+Quantity: -1
 
-stockTransaction 4:
-  date: Feb 4, 2026
-  product: I may disagree with what you say, but I will defend to death your right to say it. (Evelyn Beatrice Hall)
-  txnId: OUTSTK_11109
-  status: APPROVED
-  quantity: -1
-
-stockTransaction 5:
-  date: Feb 4, 2026
-  product: Laptop 1
-  txnId: OUTSTK_11109
-  status: APPROVED
-  quantity: -1
-
-stockTransaction 6:
-  date: Feb 4, 2026
-  product: nackband
-  txnId: OUTSTK_11109
-  status: APPROVED
-  quantity: -2
-
-STOCKSUMMARY
-------------------------------
-stockIn: 2
-stockOut: -5
-netChange: -3
-
+Record 6
+==================================================
+Date: Feb 9, 2026
+Product: test
+TXN ID: INSTK_35310
+Status: REJECTED
+Quantity: +1

@@ -1,4 +1,4 @@
-const { groq } = require("../config/groqClient");
+const { groq, MODELS } = require("../config/groqClient");
 
 // Helper function to process chat commands using Groq
 async function processCommand(command, currentData) {
@@ -7,61 +7,32 @@ async function processCommand(command, currentData) {
       messages: [
         {
           role: "system",
-          content: `You are a CSV data manipulation assistant. Based on user commands, you need to modify CSV data and return the updated data in JSON format.
-
-          Current CSV data structure (showing first item): ${JSON.stringify(
-            currentData.slice(0, 1),
-            null,
-            2
-          )}
+          content: `You are a CSV manipulation expert. Modify the JSON data as per user command and return the UPDATED JSON array ONLY.
           
-          IMPORTANT: When working with nested objects/arrays, preserve the nested structure. For example:
-          - If data has "skills": ["JavaScript", "React"], keep it as an array
-          - If data has "projects": [{"name": "X", "description": "Y"}], keep nested objects
-          - When flattening happens, it's handled automatically during CSV export
-          
-          Common commands you can handle:
-          1. Add new row/column
-          2. Delete row/column  
-          3. Update specific values
-          4. Filter data
-          5. Sort data
-          6. Calculate totals/averages
-          7. Group data
-          8. Add skills to existing skills array
-          9. Add projects to existing projects array
-          10. Modify nested object properties
-          
-          Examples:
-          - "Add skill 'Python' to all records" -> Add to skills array
-          - "Add project with name 'NewProject' and description 'Test'" -> Add to projects array
-          - "Update email for Aditya" -> Modify specific field
-          - "Remove projects with name containing 'Test'" -> Filter nested objects
-          
-          Always return the modified data as a JSON array maintaining the original structure.`,
+          RULES:
+          1. Return MUST be a valid JSON array of objects.
+          2. Maintain existing structure.
+          3. NO conversation, NO markdown blocks.`,
         },
         {
           role: "user",
-          content: `Current CSV data: ${JSON.stringify(currentData)}
-          
-          User command: ${command}
-          
-          Please modify the data according to this command and return the updated JSON array. Maintain nested structures.`,
+          content: `Data: ${JSON.stringify(currentData)}\n\nCommand: ${command}`,
         },
       ],
-      model: "meta-llama/llama-4-maverick-17b-128e-instruct",
+      model: MODELS.MODIFICATION,
       temperature: 0.1,
     });
 
-    const result = completion.choices[0].message.content;
+    const result = completion.choices[0].message.content.trim();
 
     try {
-      return JSON.parse(result);
-    } catch (parseError) {
       const jsonMatch = result.match(/\[[\s\S]*\]/);
       if (jsonMatch) {
         return JSON.parse(jsonMatch[0]);
       }
+      return JSON.parse(result);
+    } catch (parseError) {
+      console.error("CSV Process Parse Error:", result);
       return { error: "Could not parse AI response", response: result };
     }
   } catch (error) {
@@ -69,6 +40,7 @@ async function processCommand(command, currentData) {
     throw error;
   }
 }
+
 
 module.exports = {
   processCommand,

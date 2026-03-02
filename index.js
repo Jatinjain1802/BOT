@@ -20,6 +20,7 @@ app.get("/", (req, res) => {
 <html>
 <head>
     <title>SheetSage AI</title>
+    <link rel="icon" type="image/x-icon" href="/logo1.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.29.0/feather.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -850,13 +851,21 @@ app.post("/clear-session", (req, res) => {
 });
 
 // Determine base directory for temp files
-const isVercel = process.env.VERCEL === '1';
-const uploadDir = isVercel ? '/tmp/uploads' : './uploads';
-const exportDir = isVercel ? '/tmp/exports' : './exports';
+// On Vercel, process.env.VERCEL is string '1', but we check truthiness broadly
+const isVercel = !!process.env.VERCEL;
+const uploadDir = isVercel ? '/tmp/uploads' : path.join(__dirname, 'uploads');
+const exportDir = isVercel ? '/tmp/exports' : path.join(__dirname, 'exports');
+
+console.log(`Environment: ${isVercel ? 'Vercel' : 'Local'}, Upload Dir: ${uploadDir}`);
 
 // Ensure directories exist
 [uploadDir, exportDir].forEach((dir) => {
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    try {
+        if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    } catch (error) {
+        console.error(`Failed to create directory ${dir}:`, error);
+        // Do not crash, continue and fail on usage if must
+    }
 });
 
 // Start server if running directly
