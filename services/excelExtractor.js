@@ -90,10 +90,14 @@ async function extractExcelData(filePath) {
 
       const processedChunks = await processChunksWithRateLimit(rowChunks, async (chunk, chunkIdx, totalChunks) => {
         // Optional security check per chunk using Prompt Guard 2 86M
-        const sampleText = JSON.stringify(chunk.slice(0, 5));
-        const safetyResult = await checkPromptSafety(sampleText);
-        if (!safetyResult.isSafe) {
-          console.warn(`[ExcelExtractor] Warning: Chunk ${chunkIdx + 1} flagged by Prompt Guard 2`);
+        try {
+          const sampleText = JSON.stringify(chunk.slice(0, 5));
+          const safetyResult = await checkPromptSafety(sampleText);
+          if (!safetyResult.isSafe) {
+            console.warn(`[ExcelExtractor] Warning: Chunk ${chunkIdx + 1} flagged by Prompt Guard 2`);
+          }
+        } catch (guardErr) {
+          // Ignore prompt guard error on excel parsing
         }
         return chunk;
       });

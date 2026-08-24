@@ -11,10 +11,10 @@ const { upload } = require("../middleware/upload");
  * `upload.single(...)` handles file upload parsing for single file fields.
  */
 
-// Unified endpoint for PDF, Excel, and CSV files (accepting field name 'file' or 'pdf')
-router.post("/upload-file", upload.single("file"), uploadFileHandler);
+// Unified endpoint for PDF, Excel, and CSV files (accepting any field name: 'file', 'pdf', etc.)
+router.post("/upload-file", upload.any(), uploadFileHandler);
 
-// Legacy backward-compatible endpoint for existing PDF clients
-router.post("/upload-pdf", upload.single("pdf"), uploadFileHandler);
+// Legacy backward-compatible endpoint for existing clients
+router.post("/upload-pdf", upload.any(), uploadFileHandler);
 
 module.exports = router;

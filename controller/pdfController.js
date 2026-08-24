@@ -24,8 +24,8 @@ let csvData = [];
  * Express Handler for `/upload-file` and `/upload-pdf`
  */
 const uploadFileHandler = async (req, res) => {
-  // Support file received under either 'file' or 'pdf' field name
-  const uploadedFile = req.file;
+  // Support file received under any field name via req.file or req.files
+  const uploadedFile = req.file || (req.files && req.files.length > 0 ? req.files[0] : null);
 
   if (!uploadedFile) {
     return res.status(400).json({ 
