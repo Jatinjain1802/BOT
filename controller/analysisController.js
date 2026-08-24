@@ -8,7 +8,7 @@ const analyzeDataHandler = async (req, res) => {
         if (!currentData || currentData.length === 0) {
             return res.status(400).json({
                 success: false,
-                error: "No data available to analyze. Please upload a PDF first."
+                error: "No data available to analyze. Please upload a PDF or Excel/CSV file first."
             });
         }
 

@@ -8,7 +8,8 @@ const app = express();
 const PORT = 3000;
 
 // Middlewares
-app.use(express.json());
+app.use(express.json({ limit: "100mb" }));
+app.use(express.urlencoded({ limit: "100mb", extended: true }));
 app.use(express.static(path.join(__dirname, "public")));
 app.use(cors());
 
@@ -117,21 +118,21 @@ app.get("/", (req, res) => {
                 <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
                     <div class="flex items-center mb-4">
                         <i data-feather="upload" class="h-5 w-5 text-gray-600 mr-2"></i>
-                        <h2 class="text-lg font-medium text-gray-900">Upload PDF</h2>
+                        <h2 class="text-lg font-medium text-gray-900">Upload PDF or Excel</h2>
                     </div>
                     
                     <div id="dropZone" class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-gray-400 transition-colors cursor-pointer">
                         <i data-feather="file-plus" class="h-12 w-12 text-gray-400 mx-auto mb-4"></i>
-                        <p class="text-gray-600 mb-2">Drop your PDF here or click to browse</p>
-                        <p class="text-sm text-gray-500">Supports PDF files up to 10MB</p>
-                        <input type="file" id="pdfFile" accept=".pdf" class="hidden">
+                        <p class="text-gray-600 mb-2">Drop your PDF, Excel or CSV here or click to browse</p>
+                        <p class="text-sm text-gray-500">Supports PDF, XLSX, XLS & CSV up to 100MB</p>
+                        <input type="file" id="pdfFile" accept=".pdf,.xlsx,.xls,.csv" class="hidden">
                     </div>
                     
                     <div id="uploadProgress" class="hidden mt-4">
                         <div class="bg-gray-200 rounded-full h-2">
                             <div class="bg-blue-600 h-2 rounded-full progress-bar" style="width: 0%"></div>
                         </div>
-                        <p class="text-sm text-gray-600 mt-2">Processing PDF...</p>
+                        <p id="uploadProgressText" class="text-sm text-gray-600 mt-2">Processing Document & Chunks...</p>
                     </div>
                     
                     <div id="uploadResult" class="mt-4"></div>
@@ -139,7 +140,7 @@ app.get("/", (req, res) => {
                     <div id="fileActions" class="mt-4 hidden text-center border-t border-gray-100 pt-4">
                         <button onclick="removePdf()" class="text-red-500 hover:text-red-700 text-sm font-medium flex items-center justify-center mx-auto transition-colors px-3 py-1 rounded-md hover:bg-red-50">
                             <i data-feather="trash-2" class="h-4 w-4 mr-2"></i>
-                            Remove PDF & Reset
+                            Remove File & Reset
                         </button>
                     </div>
                 </div>
@@ -218,7 +219,7 @@ app.get("/", (req, res) => {
                                     <i data-feather="cpu" class="h-4 w-4 text-blue-600"></i>
                                 </div>
                                 <div class="bg-gray-100 rounded-lg p-4 max-w-md">
-                                    <p class="text-gray-800">Hello! I'm your AI assistant. Upload a PDF to get started, then I can help you process and manipulate the data.</p>
+                                    <p class="text-gray-800">Hello! I'm your AI assistant. Upload a PDF, Excel (.xlsx/.xls), or CSV file to get started, then I can help you process and manipulate the data.</p>
                                 </div>
                             </div>
                         </div>
@@ -344,12 +345,15 @@ app.get("/", (req, res) => {
             const file = fileInput.files[0];
             
             if (!file) {
-                showError(document.getElementById('uploadResult'), 'Please select a PDF file');
+                showError(document.getElementById('uploadResult'), 'Please select a PDF or Excel/CSV file');
                 return;
             }
             
-            if (file.type !== 'application/pdf') {
-                showError(document.getElementById('uploadResult'), 'Please select a valid PDF file');
+            const validExts = ['.pdf', '.xlsx', '.xls', '.csv'];
+            const fileExt = '.' + file.name.split('.').pop().toLowerCase();
+
+            if (!validExts.includes(fileExt)) {
+                showError(document.getElementById('uploadResult'), 'Please select a valid PDF, Excel (.xlsx, .xls), or CSV file');
                 return;
             }
 
@@ -359,7 +363,8 @@ app.get("/", (req, res) => {
             const dropZoneSub = dropZone.querySelectorAll('p')[1];
             
             if (dropZoneIcon) {
-                dropZoneIcon.setAttribute('data-feather', 'file-text');
+                const iconName = fileExt === '.pdf' ? 'file-text' : 'grid';
+                dropZoneIcon.setAttribute('data-feather', iconName);
                 dropZoneIcon.classList.remove('text-gray-400');
                 dropZoneIcon.classList.add('text-blue-600');
             }
@@ -369,28 +374,31 @@ app.get("/", (req, res) => {
                 dropZoneText.classList.add('font-semibold', 'text-blue-900');
             }
             if (dropZoneSub) {
-                dropZoneSub.textContent = \`Size: \${(file.size / 1024 / 1024).toFixed(2)} MB\`;
+                dropZoneSub.textContent = "Size: " + (file.size / 1024 / 1024).toFixed(2) + " MB (" + fileExt.toUpperCase().replace(".", "") + ")";
             }
             feather.replace();
             
             const formData = new FormData();
+            formData.append('file', file);
             formData.append('pdf', file);
             
             const progressDiv = document.getElementById('uploadProgress');
             const resultDiv = document.getElementById('uploadResult');
+            const progressText = document.getElementById('uploadProgressText');
             
             progressDiv.classList.remove('hidden');
-            updateProgress(0);
+            updateProgress(10);
+            if (progressText) progressText.textContent = "Uploading & processing document chunks...";
             
             try {
-                updateProgress(30);
+                updateProgress(35);
                 
-                const response = await fetch('/upload-pdf', {
+                const response = await fetch('/upload-file', {
                     method: 'POST',
                     body: formData
                 });
                 
-                updateProgress(70);
+                updateProgress(80);
                 
                 const result = await response.json();
                 
@@ -401,9 +409,10 @@ app.get("/", (req, res) => {
                     
                     if (result.success) {
                         hasUploadedFile = true; // Mark as uploaded
-                        showSuccess(resultDiv, 'PDF processed successfully! Ready for CSV creation.');
+                        const fileTypeName = result.fileType || 'File';
+                        showSuccess(resultDiv, fileTypeName + " processed successfully! Ready for operations.");
                         document.getElementById('fileActions').classList.remove('hidden'); // Show remove button
-                        addAssistantMessage('**PDF Uploaded Successfully!** 🚀\\n\\nI extract data from your file. You can now:\\n- Ask me to **filter** or **modify** the data\\n- **Generate charts** using the button above\\n- **Export** to CSV or Excel');
+                        addAssistantMessage("**" + fileTypeName + " File Uploaded Successfully!** 🚀\n\nExtracted **" + (result.totalRows || 0) + " records**. You can now:\n- Ask me to **filter**, **sort**, or **modify** the data\n- **Generate charts** using the button above\n- **Export** to CSV or Excel");
                     } else {
                         showError(resultDiv, result.error);
                     }
@@ -870,9 +879,12 @@ console.log(`Environment: ${isVercel ? 'Vercel' : 'Local'}, Upload Dir: ${upload
 
 // Start server if running directly
 if (require.main === module) {
-    app.listen(PORT, () => {
+    const server = app.listen(PORT, () => {
         console.log(`🚀 AI Agent server running on http://localhost:${PORT}`);
     });
+    // Extend HTTP server timeout to 15 minutes for processing 37MB+ multi-chunk files comfortably
+    server.timeout = 15 * 60 * 1000;
+    server.keepAliveTimeout = 15 * 60 * 1000;
 }
 
 module.exports = app;

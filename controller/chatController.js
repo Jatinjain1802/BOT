@@ -24,7 +24,7 @@ const handleChat = async (req, res) => {
 
     if (isCsvCommand) {
       if (csvData.length === 0) {
-        return res.status(400).json({ success: false, error: "No PDF data available. Please upload a PDF first." });
+        return res.status(400).json({ success: false, error: "No data available. Please upload a PDF or Excel/CSV file first." });
       }
 
       if (command.toLowerCase().startsWith("format")) {
