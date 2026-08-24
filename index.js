@@ -121,10 +121,14 @@ app.get("/", (req, res) => {
                         <h2 class="text-lg font-medium text-gray-900">Upload PDF or Excel</h2>
                     </div>
                     
-                    <div id="dropZone" class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-gray-400 transition-colors cursor-pointer">
-                        <i data-feather="file-plus" class="h-12 w-12 text-gray-400 mx-auto mb-4"></i>
-                        <p class="text-gray-600 mb-2">Drop your PDF, Excel or CSV here or click to browse</p>
-                        <p class="text-sm text-gray-500">Supports PDF, XLSX, XLS & CSV up to 100MB</p>
+                    <div id="dropZone" class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-gray-400 transition-colors cursor-pointer flex flex-col items-center justify-center">
+                        <i data-feather="file-plus" class="h-12 w-12 text-gray-400 mb-3"></i>
+                        <p class="text-gray-700 font-medium mb-1">Drop your PDF, Excel or CSV file here</p>
+                        <p class="text-xs text-gray-500 mb-4">Supports PDF, XLSX, XLS & CSV up to 100MB</p>
+                        <button type="button" id="selectFileBtn" class="bg-blue-600 text-white px-5 py-2.5 rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm inline-flex items-center shadow-sm pointer-events-auto">
+                            <i data-feather="folder-plus" class="h-4 w-4 mr-2"></i>
+                            Browse & Select File
+                        </button>
                         <input type="file" id="pdfFile" accept=".pdf,.xlsx,.xls,.csv" class="hidden">
                     </div>
                     
@@ -289,7 +293,9 @@ app.get("/", (req, res) => {
         const dropZone = document.getElementById('dropZone');
         const fileInput = document.getElementById('pdfFile');
         
-        dropZone.addEventListener('click', () => fileInput.click());
+        dropZone.addEventListener('click', (e) => {
+            fileInput.click();
+        });
         
         dropZone.addEventListener('dragover', (e) => {
             e.preventDefault();
@@ -304,13 +310,16 @@ app.get("/", (req, res) => {
             e.preventDefault();
             dropZone.classList.remove('drag-over');
             const files = e.dataTransfer.files;
-            if (files.length > 0) {
-                fileInput.files = files;
-                uploadPdf();
+            if (files && files.length > 0) {
+                uploadPdf(files[0]);
             }
         });
         
-        fileInput.addEventListener('change', uploadPdf);
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files && e.target.files.length > 0) {
+                uploadPdf(e.target.files[0]);
+            }
+        });
         
         function showLoader(element) {
             element.innerHTML = '<div class="flex items-center justify-center"><div class="loader"></div><span class="ml-2 text-gray-600">Processing...</span></div>';
@@ -341,8 +350,8 @@ app.get("/", (req, res) => {
             progressBar.style.width = percentage + '%';
         }
         
-        async function uploadPdf() {
-            const file = fileInput.files[0];
+        async function uploadPdf(fileOverride = null) {
+            const file = fileOverride || (fileInput.files && fileInput.files[0]);
             
             if (!file) {
                 showError(document.getElementById('uploadResult'), 'Please select a PDF or Excel/CSV file');
@@ -412,7 +421,7 @@ app.get("/", (req, res) => {
                         const fileTypeName = result.fileType || 'File';
                         showSuccess(resultDiv, fileTypeName + " processed successfully! Ready for operations.");
                         document.getElementById('fileActions').classList.remove('hidden'); // Show remove button
-                        addAssistantMessage("**" + fileTypeName + " File Uploaded Successfully!** 🚀\n\nExtracted **" + (result.totalRows || 0) + " records**. You can now:\n- Ask me to **filter**, **sort**, or **modify** the data\n- **Generate charts** using the button above\n- **Export** to CSV or Excel");
+                        addAssistantMessage("**" + fileTypeName + " File Uploaded Successfully!** 🚀\\n\\nExtracted **" + (result.totalRows || 0) + " records**. You can now:\\n- Ask me to **filter**, **sort**, or **modify** the data\\n- **Generate charts** using the button above\\n- **Export** to CSV or Excel");
                     } else {
                         showError(resultDiv, result.error);
                     }
@@ -500,12 +509,12 @@ app.get("/", (req, res) => {
                 dropZoneIcon.classList.remove('text-blue-600');
             }
             if(dropZoneText) {
-                dropZoneText.className = 'text-gray-600 mb-2';
-                dropZoneText.textContent = 'Drop your PDF here or click to browse';
+                dropZoneText.className = 'text-gray-700 font-medium mb-1';
+                dropZoneText.textContent = 'Drop your PDF, Excel or CSV file here';
                  dropZoneText.classList.remove('font-semibold', 'text-blue-900');
             }
             if(dropZoneSub) {
-                dropZoneSub.textContent = 'Supports PDF files up to 10MB';
+                dropZoneSub.textContent = 'Supports PDF, XLSX, XLS & CSV up to 100MB';
             }
             
             feather.replace();
