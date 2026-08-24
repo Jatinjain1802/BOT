@@ -5,7 +5,7 @@ const { Groq } = require("groq-sdk");
  * --------------------------------
  * This module initializes the Groq client and defines the model mappings
  * and rate-limiting rules.
- * 
+ *
  * Prompt Guard 2 86M Limits (as specified):
  * - Requests: 30 / minute (requires >= 2000ms interval between calls)
  * - Tokens: 15,000 / minute (requires sliding window token tracking)
@@ -19,22 +19,26 @@ try {
   });
 } catch (error) {
   console.error("Groq initialization error:", error);
-  groq = { 
-    chat: { 
-      completions: { 
-        create: async () => { throw new Error("GROQ_API_KEY is missing in environment variables."); } 
-      } 
-    } 
+  groq = {
+    chat: {
+      completions: {
+        create: async () => {
+          throw new Error("GROQ_API_KEY is missing in environment variables.");
+        },
+      },
+    },
   };
 }
 
 // Model Mapping for different tasks in the application
 const MODELS = {
   PROMPT_GUARD: "meta-llama/llama-prompt-guard-2-86m", // Meta Prompt Guard 2 (86M) for input safety checks
-  EXTRACTION: process.env.GROQ_LLM_MODEL || "llama-3.3-70b-versatile", // Structured JSON extraction model
-  ANALYSIS: process.env.GROQ_LLM_MODEL || "llama-3.3-70b-versatile",   // Data analysis & visualization config
-  MODIFICATION: process.env.GROQ_LLM_MODEL || "llama-3.3-70b-versatile", // Precise JSON structural modification
-  CHAT: process.env.GROQ_LLM_MODEL || "llama-3.1-8b-instant"            // Fast chat responses
+  EXTRACTION:
+    process.env.GROQ_LLM_MODEL || "meta-llama/llama-prompt-guard-2-86m", // Structured JSON extraction model
+  ANALYSIS: process.env.GROQ_LLM_MODEL || "meta-llama/llama-prompt-guard-2-86m", // Data analysis & visualization config
+  MODIFICATION:
+    process.env.GROQ_LLM_MODEL || "meta-llama/llama-prompt-guard-2-86m", // Precise JSON structural modification
+  CHAT: process.env.GROQ_LLM_MODEL || "meta-llama/llama-prompt-guard-2-86m", // Fast chat responses
 };
 
 /**
@@ -66,7 +70,7 @@ class RateLimiter {
   cleanHistory() {
     const now = Date.now();
     this.tokenUsageHistory = this.tokenUsageHistory.filter(
-      (entry) => now - entry.timestamp < 60000
+      (entry) => now - entry.timestamp < 60000,
     );
   }
 
@@ -75,7 +79,10 @@ class RateLimiter {
    */
   getCurrentTokensInWindow() {
     this.cleanHistory();
-    return this.tokenUsageHistory.reduce((sum, entry) => sum + entry.tokenCount, 0);
+    return this.tokenUsageHistory.reduce(
+      (sum, entry) => sum + entry.tokenCount,
+      0,
+    );
   }
 
   /**
@@ -93,7 +100,9 @@ class RateLimiter {
 
     // 2. Throttle if token usage in last 60s exceeds 15K TPM
     while (this.getCurrentTokensInWindow() + estimatedTokens > this.maxTpm) {
-      console.log(`[RateLimiter] Approaching TPM limit (15K/min). Pausing 2 seconds...`);
+      console.log(
+        `[RateLimiter] Approaching TPM limit (15K/min). Pausing 2 seconds...`,
+      );
       await new Promise((resolve) => setTimeout(resolve, 2000));
     }
 
@@ -114,5 +123,3 @@ class RateLimiter {
 const rateLimiter = new RateLimiter(30, 15000);
 
 module.exports = { groq, MODELS, rateLimiter };
-
-
