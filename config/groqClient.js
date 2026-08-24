@@ -12,10 +12,10 @@ try {
 
 // Model Mapping for different tasks
 const MODELS = {
-  EXTRACTION: "meta-llama/llama-prompt-guard-2-22m", // Powerful for understanding documents
-  ANALYSIS: "meta-llama/llama-prompt-guard-2-22m",    // Good reasoning for charts
-  MODIFICATION: "meta-llama/llama-prompt-guard-2-22m", // Precise for structural JSON changes
-  CHAT: "meta-llama/llama-prompt-guard-2-22m"            // Super fast and friendly for basic chat
+  EXTRACTION: "meta-llama/llama-prompt-guard-2-86m", // Powerful for understanding documents
+  ANALYSIS: "meta-llama/llama-prompt-guard-2-86m",    // Good reasoning for charts
+  MODIFICATION: "meta-llama/llama-prompt-guard-2-86m", // Precise for structural JSON changes
+  CHAT: "meta-llama/llama-prompt-guard-2-86m"            // Super fast and friendly for basic chat
 };
 
 module.exports = { groq, MODELS };
