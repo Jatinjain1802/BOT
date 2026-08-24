@@ -11,10 +11,24 @@ const { upload } = require("../middleware/upload");
  * `upload.single(...)` handles file upload parsing for single file fields.
  */
 
-// Unified endpoint for PDF, Excel, and CSV files (accepting any field name: 'file', 'pdf', etc.)
-router.post("/upload-file", upload.any(), uploadFileHandler);
+// Middleware wrapper to catch Multer file upload errors and format as JSON
+const handleMulterUpload = (req, res, next) => {
+  upload.any()(req, res, (err) => {
+    if (err) {
+      console.error("[UploadMiddleware] File upload error:", err.message);
+      return res.status(400).json({
+        success: false,
+        error: err.message || "File upload failed due to file size or format constraints.",
+      });
+    }
+    next();
+  });
+};
 
-// Legacy backward-compatible endpoint for existing clients
-router.post("/upload-pdf", upload.any(), uploadFileHandler);
+// Unified endpoint for PDF, Excel, and CSV files
+router.post("/upload-file", handleMulterUpload, uploadFileHandler);
+
+// Legacy backward-compatible endpoint
+router.post("/upload-pdf", handleMulterUpload, uploadFileHandler);
 
 module.exports = router;

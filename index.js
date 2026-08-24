@@ -407,9 +407,18 @@ app.get("/", (req, res) => {
                     body: formData
                 });
                 
-                updateProgress(80);
-                
-                const result = await response.json();
+                const responseText = await response.text();
+                let result;
+                try {
+                    result = JSON.parse(responseText);
+                } catch (parseError) {
+                    result = { 
+                        success: false, 
+                        error: response.status === 413 || responseText.includes("Request Entity Too Large")
+                            ? "File payload is too large for server memory. Please try a smaller file or chunk."
+                            : (responseText || "Server error (" + response.status + ")")
+                    };
+                }
                 
                 updateProgress(100);
                 
@@ -866,6 +875,18 @@ app.post("/clear-session", (req, res) => {
     const { setCsvData } = require("./controller/pdfController");
     setCsvData([]); // Clear the data on the server
     res.json({ success: true, message: "Session cleared" });
+});
+
+// Express Global Error Handling Middleware (Catches 413 Payload Too Large and formats as JSON)
+app.use((err, req, res, next) => {
+    if (err) {
+        console.error("[ExpressError]", err.message);
+        return res.status(err.status || 400).json({
+            success: false,
+            error: err.message || "File payload too large or invalid request format."
+        });
+    }
+    next();
 });
 
 // Determine base directory for temp files
