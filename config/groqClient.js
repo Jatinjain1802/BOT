@@ -32,11 +32,11 @@ try {
 
 // Model Mapping for different tasks in the application
 const MODELS = {
-  PROMPT_GUARD: "meta-llama/llama-prompt-guard-2-86m", // Meta Prompt Guard 2 (86M) for input safety checks (512 token max)
-  EXTRACTION: process.env.GROQ_LLM_MODEL || "qwen/qwen3.6-27b", // Structured JSON extraction model (128K context window)
-  ANALYSIS: process.env.GROQ_LLM_MODEL || "qwen/qwen3.6-27b", // Data analysis & chart generation (128K context window)
-  MODIFICATION: process.env.GROQ_LLM_MODEL || "qwen/qwen3.6-27b", // Precise JSON structural modification (128K context window)
-  CHAT: process.env.GROQ_LLM_MODEL || "qwen/qwen3.6-27b", // Fast chat responses (128K context window)
+  PROMPT_GUARD: "meta-llama/llama-prompt-guard-2-86m", // Meta Prompt Guard 2 (86M) for input safety checks
+  EXTRACTION: process.env.GROQ_LLM_MODEL || "qwen/qwen3.6-27b", // Structured JSON extraction model
+  ANALYSIS: process.env.GROQ_LLM_MODEL || "qwen/qwen3.6-27b",   // Data analysis & chart generation
+  MODIFICATION: process.env.GROQ_LLM_MODEL || "qwen/qwen3.6-27b", // Precise JSON structural modification
+  CHAT: process.env.GROQ_LLM_MODEL || "qwen/qwen3.6-27b"            // Fast chat responses
 };
 
 /**

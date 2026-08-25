@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SheetSage AI — AI-Powered Data Analytics Platform</title>
+    <link rel="icon" type="image/x-icon" href="/logo1.png">
+    
+    <!-- CDNs for styling, charts, formatting and icons -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.29.0/feather.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Link to custom premium style sheet -->
+    <link rel="stylesheet" href="/app.css">
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col font-sans overflow-hidden">
+
+    <!-- Top Navigation Header -->
+    <nav class="h-16 border-b border-slate-800 bg-slate-950/70 backdrop-blur-md flex items-center justify-between px-6 z-50 shrink-0">
+        <div class="flex items-center space-x-3">
+            <div class="p-1 bg-indigo-600/10 rounded-lg border border-indigo-500/20">
+                <img src="/logo.png" alt="Logo" class="h-8 w-auto object-contain">
+            </div>
+            <div>
+                <h1 class="text-lg font-bold bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent font-display">SheetSage AI</h1>
+                <p class="text-xxs text-slate-400 uppercase tracking-widest font-semibold">Conversational BI Engine</p>
+            </div>
+        </div>
+
+        <div class="flex items-center space-x-4">
+            <!-- Active File Badge -->
+            <div id="activeFileContainer" class="hidden flex items-center space-x-2 bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-lg">
+                <i data-feather="file" class="w-4 h-4 text-indigo-400"></i>
+                <span id="activeFileName" class="text-xs font-medium text-slate-200 truncate max-w-[180px]">sales_data.xlsx</span>
+                <span id="activeFileSize" class="text-xxs text-slate-400 font-mono bg-slate-800 px-1.5 py-0.5 rounded">37 MB</span>
+            </div>
+
+            <!-- Status Indicator -->
+            <div class="flex items-center space-x-2 bg-slate-950 border border-slate-800 px-3 py-1.5 rounded-lg shadow-inner">
+                <span class="relative flex h-2 w-2">
+                    <span id="statusPing" class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span id="statusDot" class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                </span>
+                <span id="statusText" class="text-xs font-semibold text-slate-300">Ready</span>
+            </div>
+
+            <!-- Reset Database -->
+            <button id="resetSessionBtn" class="hidden hover:bg-red-500/10 hover:text-red-400 text-slate-400 border border-transparent hover:border-red-500/20 px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-300 flex items-center space-x-1.5">
+                <i data-feather="rotate-ccw" class="w-3.5 h-3.5"></i>
+                <span>Reset</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Main Application Workspace -->
+    <div class="flex-1 flex overflow-hidden relative">
+
+        <!-- Upload File Overlay (Visible when no dataset is active) -->
+        <div id="uploadScreen" class="absolute inset-0 bg-slate-950/95 z-40 flex flex-col items-center justify-center p-8 transition-all duration-500">
+            <div class="max-w-md w-full text-center space-y-6">
+                <div class="space-y-2">
+                    <h2 class="text-3xl font-extrabold text-white">Upload your dataset</h2>
+                    <p class="text-slate-400 text-sm">Drop your XLSX, XLS, or CSV spreadsheets (up to 100MB) to start chatting, querying, and visualizing.</p>
+                </div>
+
+                <!-- Drag & Drop Zone -->
+                <div id="dropZone" class="border-2 border-dashed border-slate-800 hover:border-indigo-500/50 rounded-2xl p-10 bg-slate-900/40 hover:bg-slate-900/60 transition-all duration-300 cursor-pointer group flex flex-col items-center justify-center space-y-4">
+                    <div class="p-4 bg-slate-800/50 group-hover:bg-indigo-600/10 rounded-full border border-slate-700/50 group-hover:border-indigo-500/30 transition-all duration-300">
+                        <i data-feather="upload-cloud" class="w-10 h-10 text-slate-400 group-hover:text-indigo-400 transition-all duration-300"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm font-semibold text-slate-300">Drag & drop your file here, or <span class="text-indigo-400 hover:underline">browse</span></p>
+                        <p class="text-xxs text-slate-500 mt-1">Supports PDF, XLSX, XLS, and CSV (Max 100MB)</p>
+                    </div>
+                    <input type="file" id="fileInput" class="hidden" accept=".xlsx,.xls,.csv,.pdf">
+                </div>
+
+                <!-- Upload Progress Indicator -->
+                <div id="uploadProgressContainer" class="hidden space-y-2.5 text-left bg-slate-900/80 border border-slate-800 p-4 rounded-xl">
+                    <div class="flex justify-between items-center text-xs">
+                        <span id="progressStatus" class="font-medium text-slate-300">Uploading file...</span>
+                        <span id="progressPercent" class="font-mono text-indigo-400 font-semibold">0%</span>
+                    </div>
+                    <div class="w-full bg-slate-850 h-2 rounded-full overflow-hidden border border-slate-800">
+                        <div id="progressBar" class="bg-gradient-to-r from-indigo-500 to-purple-500 h-full rounded-full transition-all duration-300" style="width: 0%"></div>
+                    </div>
+                </div>
+                
+                <div id="uploadError" class="hidden text-xs text-red-400 bg-red-500/10 border border-red-500/20 p-3 rounded-lg flex items-center justify-center space-x-2">
+                    <i data-feather="alert-circle" class="w-4 h-4"></i>
+                    <span id="uploadErrorText">File upload failed.</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Left Sidebar: Dataset Schema and Profiles -->
+        <aside id="sidebar" class="w-72 border-r border-slate-800 bg-slate-950/40 flex flex-col overflow-hidden select-none shrink-0 transition-transform duration-300">
+            <!-- Sidebar Header / Metadata summary -->
+            <div class="p-4 border-b border-slate-800 bg-slate-950/20">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-xxs uppercase tracking-wider font-bold text-slate-400">Dataset Health</span>
+                    <span id="dataQualityBadge" class="text-xxs font-mono bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-1.5 py-0.5 rounded font-bold">100% Quality</span>
+                </div>
+                <div class="grid grid-cols-2 gap-2 text-center">
+                    <div class="bg-slate-900/80 border border-slate-800 p-2.5 rounded-lg shadow-sm">
+                        <p class="text-xxs text-slate-500 uppercase font-semibold">Rows</p>
+                        <p id="statRows" class="text-sm font-bold text-slate-200 font-mono mt-0.5">—</p>
+                    </div>
+                    <div class="bg-slate-900/80 border border-slate-800 p-2.5 rounded-lg shadow-sm">
+                        <p class="text-xxs text-slate-500 uppercase font-semibold">Columns</p>
+                        <p id="statCols" class="text-sm font-bold text-slate-200 font-mono mt-0.5">—</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- List of schema columns -->
+            <div class="flex-1 overflow-y-auto p-4 space-y-4 custom-scroll">
+                <div>
+                    <h3 class="text-xxs uppercase tracking-wider font-bold text-slate-400 mb-2.5">Available Fields</h3>
+                    <div id="columnsList" class="space-y-1.5">
+                        <!-- Column item templates will be injected here -->
+                        <div class="text-xs text-slate-500 italic py-2">No dataset loaded.</div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Right Side: Chat & Results Console -->
+        <main class="flex-1 flex flex-col bg-slate-900/30 overflow-hidden relative">
+
+            <!-- Chat Message Logs -->
+            <div id="chatMessages" class="flex-1 overflow-y-auto p-6 space-y-6 custom-scroll">
+                <!-- Welcome Assistant bubble -->
+                <div class="flex items-start space-x-3.5 max-w-2xl">
+                    <div class="w-8 h-8 rounded-lg bg-indigo-600/10 border border-indigo-500/30 flex items-center justify-center text-indigo-400 shrink-0 shadow-sm mt-0.5">
+                        <i data-feather="cpu" class="w-4 h-4"></i>
+                    </div>
+                    <div class="space-y-1">
+                        <p class="text-xxs font-bold uppercase tracking-wider text-indigo-400">SheetSage AI</p>
+                        <div class="bg-slate-950 border border-slate-850 p-4 rounded-2xl rounded-tl-none text-sm text-slate-300 leading-relaxed shadow-sm">
+                            <p>Hello! I am your AI-powered data assistant. Please upload a spreadsheet to start analyzing. Once uploaded, you can ask me to run aggregations, filter records, or plot graphs using natural language.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dynamic Workspace Result Panels (Injected below current query) -->
+            <div id="workspaceWorkspace" class="hidden shrink-0 border-t border-slate-800 bg-slate-950/80 backdrop-blur-md p-4 max-h-[360px] overflow-y-auto custom-scroll transition-all duration-300">
+                <div class="flex items-center justify-between mb-3 border-b border-slate-800 pb-2">
+                    <div class="flex items-center space-x-2">
+                        <i data-feather="bar-chart-2" class="w-4 h-4 text-indigo-400"></i>
+                        <span id="workspaceTitle" class="text-xs font-bold text-slate-200">Query Results</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <button id="toggleViewModeBtn" class="text-xxs bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-300 px-2 py-1 rounded transition">
+                            Switch to Table
+                        </button>
+                        <button id="downloadQueryExcelBtn" class="text-xxs bg-indigo-600 hover:bg-indigo-500 text-white px-2 py-1 rounded transition flex items-center space-x-1">
+                            <i data-feather="download" class="w-3 h-3"></i>
+                            <span>Export Selection</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Rendering Area (Chart or Table) -->
+                <div class="relative min-h-[220px] flex items-center justify-center">
+                    <!-- Chart canvas container -->
+                    <div id="chartViewContainer" class="w-full h-[220px]">
+                        <canvas id="workspaceChart"></canvas>
+                    </div>
+                    
+                    <!-- Table preview container -->
+                    <div id="tableViewContainer" class="hidden w-full overflow-x-auto text-xs">
+                        <table class="w-full border-collapse text-left text-slate-300">
+                            <thead>
+                                <tr id="tableHeaderRow" class="border-b border-slate-800 bg-slate-900/50 text-slate-400 font-semibold">
+                                    <!-- Table headers injected here -->
+                                </tr>
+                            </thead>
+                            <tbody id="tableBodyRows">
+                                <!-- Table rows injected here -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- KPI display container -->
+                    <div id="kpiViewContainer" class="hidden text-center py-6">
+                        <p id="kpiLabel" class="text-xs text-slate-400 uppercase tracking-wider font-semibold">Total Revenue</p>
+                        <p id="kpiValue" class="text-4xl font-extrabold text-white mt-1 bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent font-mono">$1,234,567.89</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom Console Input Box -->
+            <div class="p-4 border-t border-slate-800 bg-slate-950/40 shrink-0">
+                <div class="max-w-3xl mx-auto space-y-3">
+                    
+                    <!-- Suggestion Shortcut Chips -->
+                    <div id="quickChipsContainer" class="flex flex-wrap gap-1.5">
+                        <button onclick="sendQuickPrompt('Show total rows and columns')" class="text-xxs bg-slate-900 border border-slate-850 hover:bg-slate-800 hover:border-slate-700 text-slate-400 hover:text-slate-200 px-2.5 py-1 rounded-full transition-all duration-300">
+                            Data Overview
+                        </button>
+                        <button onclick="sendQuickPrompt('What columns are in the dataset?')" class="text-xxs bg-slate-900 border border-slate-850 hover:bg-slate-800 hover:border-slate-700 text-slate-400 hover:text-slate-200 px-2.5 py-1 rounded-full transition-all duration-300">
+                            Show Columns
+                        </button>
+                        <button onclick="sendQuickPrompt('Show me a bar chart of aggregations')" id="suggestAggBtn" class="hidden text-xxs bg-slate-900 border border-slate-850 hover:bg-slate-800 hover:border-slate-700 text-slate-400 hover:text-slate-200 px-2.5 py-1 rounded-full transition-all duration-300">
+                            Chart Metric by Category
+                        </button>
+                    </div>
+
+                    <!-- Input Box Wrapper -->
+                    <div class="relative bg-slate-950 border border-slate-800 focus-within:border-indigo-500/50 rounded-xl shadow-lg transition-all duration-300 flex flex-col p-2">
+                        <textarea 
+                            id="chatInput" 
+                            placeholder="Ask a question about your data... (e.g., 'Show total sales grouped by region')" 
+                            class="w-full bg-transparent border-0 outline-none focus:ring-0 text-slate-200 placeholder-slate-500 text-sm resize-none px-2.5 py-2 h-11 max-h-32 custom-scroll"
+                            onkeydown="handleTextareaKeyDown(event)"
+                        ></textarea>
+                        
+                        <div class="flex items-center justify-between pt-1 border-t border-slate-900/30 px-2">
+                            <span class="text-xxs text-slate-500">Ctrl + Enter to send</span>
+                            <button 
+                                id="sendBtn" 
+                                onclick="sendChatMessage()"
+                                class="bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg px-3.5 py-1.5 text-xs font-semibold shadow transition-all duration-300 flex items-center space-x-1"
+                            >
+                                <span>Send</span>
+                                <i data-feather="send" class="w-3 h-3"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+
+    </div>
+
+    <!-- Script assets loader -->
+    <script src="/app.js"></script>
+    <script>
+        // Init feather icons on load
+        feather.replace();
+    </script>
+</body>
+</html>
